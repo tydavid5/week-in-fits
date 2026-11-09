@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Week in Fits, plan a week of outfits from clothes you own</title>
+<meta name="description" content="People with a full wardrobe still wear the same three outfits because planning a week takes too long. Week in Fits plans 7 outfits from your own closet and shows each one with a Clothsy virtual try-on.">
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<header class="topbar">
+  <div class="brand">Week in Fits</div>
+  <div class="mode-badge" id="mode-badge">Checking mode...</div>
+</header>
+
+<main>
+  <section class="hero">
+    <p class="problem">People with a full wardrobe still wear the same three outfits because planning a week takes too long.</p>
+    <p class="hero-sub">Week in Fits plans 7 outfits from clothes you already own, matched to your week, the Lagos weather, and the occasion, then shows each outfit on you with a virtual try-on.</p>
+    <p class="track">HackTheFashion Global'26, Styling and Wardrobe track</p>
+    <a class="button" href="#planner">Plan my week</a>
+    <p class="mode-note" id="mode-note">Mode: checking...</p>
+  </section>
+
+  <section class="card" id="photo-step">
+    <h2>Step 1, your photo</h2>
+    <p>Pick a sample shopper to try the demo, or upload your own photo. Only adults, and only your own photo, or a photo you have permission to use. Your photo is only sent for a try-on after you tick the consent box.</p>
+    <div class="samples" id="samples"></div>
+    <label class="field-label" for="photo-upload">Or upload your own photo (JPEG or PNG, up to 4 MB)</label>
+    <input type="file" id="photo-upload" accept="image/jpeg,image/png">
+    <div class="preview" id="photo-preview">
+      <p>No photo picked yet. Pick a sample shopper above to start.</p>
+    </div>
+    <label class="consent">
+      <input type="checkbox" id="consent">
+      <span>I am an adult, this is my photo or I have permission to use it, and I agree to it being sent to Clothsy for a virtual try-on.</span>
+    </label>
+  </section>
+
+  <section class="card" id="closet">
+    <h2>Step 2, your closet</h2>
+    <p>14 sample garments to start with. Add your own by image URL, and remove any custom garment you added. Your closet is saved in this browser only.</p>
+    <div class="closet-grid" id="closet-grid"></div>
+    <h3>Add a garment</h3>
+    <form id="add-garment-form" class="add-form">
+      <label class="field-label" for="new-image-url">Garment image URL (https, JPEG or PNG)</label>
+      <input type="url" id="new-image-url" placeholder="https://..." required>
+      <label class="field-label" for="new-name">Name</label>
+      <input type="text" id="new-name" placeholder="Blue linen shirt" required maxlength="80">
+      <label class="field-label" for="new-type">Type</label>
+      <select id="new-type">
+        <option value="top">Top</option>
+        <option value="bottom">Bottom</option>
+        <option value="dress">Dress</option>
+        <option value="jacket">Jacket</option>
+      </select>
+      <label class="field-label" for="new-colour">Colour</label>
+      <input type="text" id="new-colour" placeholder="blue" required maxlength="40">
+      <label class="field-label" for="new-warmth">Warmth</label>
+      <select id="new-warmth">
+        <option value="light">Light</option>
+        <option value="medium">Medium</option>
+        <option value="warm">Warm</option>
+      </select>
+      <label class="field-label" for="new-occasions">Occasions (tick at least one)</label>
+      <div class="check-row">
+        <label><input type="checkbox" name="new-occasion" value="work"> Work</label>
+        <label><input type="checkbox" name="new-occasion" value="casual" checked> Casual</label>
+        <label><input type="checkbox" name="new-occasion" value="event"> Event</label>
+        <label><input type="checkbox" name="new-occasion" value="date"> Date</label>
+        <label><input type="checkbox" name="new-occasion" value="rest"> Rest</label>
+      </div>
+      <button class="button" type="submit">Add garment</button>
+      <p class="form-message" id="add-form-message"></p>
+    </form>
+  </section>
+
+  <section class="card" id="planner">
+    <h2>Step 3, plan your week</h2>
+    <p>People with a full wardrobe still wear the same three outfits because planning a week takes too long. Pick an occasion for each day, then generate the week. The planner is a simple rule system, not a black box: it matches warmth to the temperature, matches the occasion, never repeats a garment in the week, and spreads colours across days.</p>
+    <div class="week-days" id="week-days"></div>
+    <button class="button big" id="generate-week" type="button">Generate my week</button>
+    <p class="form-message" id="plan-message"></p>
+    <div class="plan-grid" id="plan-grid"></div>
+  </section>
+
+  <section class="card" id="tryon-result-section">
+    <h2>Your try-on</h2>
+    <p>Tap "Try on" on any day in your plan. The result appears here.</p>
+    <div id="tryon-result">
+      <p>No try-on yet.</p>
+    </div>
+  </section>
+
+  <section class="card" id="how">
+    <h2>How it works</h2>
+    <ol>
+      <li>You pick a photo and build a closet from clothes you own.</li>
+      <li>You pick an occasion for each day of the week, starting Monday Nov 16, 2026.</li>
+      <li>The planner picks one outfit per day, with no repeats, matched to the Lagos weather and the occasion.</li>
+      <li>For each day, the app sends your photo and the main garment photo to Clothsy AI through our own server, with your consent. Clothsy returns a photo of you wearing that garment. One finished try-on costs 1 Clothsy credit, and a failed try-on is refunded.</li>
+      <li>When no API key is set, the app runs in demo mode and shows a labelled sample try-on instead of a live Clothsy call.</li>
+    </ol>
+    <p>Weather comes from Open-Meteo for Lagos. If the weather fetch fails, the app uses 31C, sunny, 10 percent rain, and says so on each day.</p>
+  </section>
+</main>
+
+<footer>
+  <p>Week in Fits, HackTheFashion Global'26, Styling and Wardrobe track.</p>
+  <p id="footer-mode">Demo mode: sample try-on, not a live Clothsy call, until an API key is set.</p>
+  <p>Sample photos are samples from Unsplash. Only use your own photo, or a photo you have permission to use. Try-on results are AI-generated images.</p>
+</footer>
+
+<script src="app.js"></script>
+</body>
+</html>
