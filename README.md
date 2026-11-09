@@ -2,7 +2,7 @@ People with a full wardrobe still wear the same three outfits because planning a
 
 Week in Fits is a HackTheFashion Global'26 entry in the Styling and Wardrobe track. You upload your photo, build a closet from clothes you own, pick an occasion for each day of the week starting Monday Nov 16, 2026, and the app plans 7 outfits, one per day, matched to the Lagos weather and the occasion. Each day has a Try on button that shows you wearing that outfit through a Clothsy AI virtual try-on.
 
-Live demo: https://week-in-fits.vercel.app (to be confirmed after deploy, not live yet)
+Live demo: https://week-in-fits.vercel.app
 
 ## How it works
 
