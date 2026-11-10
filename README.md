@@ -11,6 +11,7 @@ Live demo: https://week-in-fits.vercel.app
 3. Pick an occasion (work, casual, event, date, rest) for each day, Mon Nov 16 to Sun Nov 22, 2026.
 4. Tap Generate my week. The planner is a deterministic rule system, not a black box: it matches garment warmth to the day's temperature, matches occasion tags, never repeats a garment in the week, and spreads colours across days.
 5. Tap Try on for any day. The app sends your photo and the main garment photo to Clothsy through the server function in api/tryon.js, with consent true. For an outfit with two garments, the main garment (top or dress) is tried on, and the second garment is named as paired in text.
+6. Step 4, the Mannequin test: tick 3 or 4 days in your plan and tap "Test these outfits on the mannequin". The app runs a live Clothsy try-on for each picked outfit and shows the results as a digital mannequin lineup, a human-shaped prototype, so the practical outfits for those days are tested before you wear them. Each test costs 1 credit in live mode.
 
 Weather comes from Open-Meteo for Lagos (latitude 6.5244, longitude 3.3792, daily max temperature and precipitation probability, timezone Africa/Lagos). If the weather fetch fails, the app uses 31C, sunny, 10 percent rain, and labels it as a fallback on each day.
 
@@ -23,7 +24,7 @@ Docs read before coding: https://clothsyai.fabricvton.com/docs/api, plus the end
 Endpoints used:
 
 - POST /images, multipart form with a single file field, returns an img id, free, valid 24 hours. Used for an uploaded shopper photo, so the photo never needs a public URL.
-- POST /tryons, async, with Authorization Bearer CLOTHSY_API_KEY, a fresh Idempotency-Key per try-on, and a JSON body with personImageUrl or personImageId, garmentImageUrl, title, and consent true. It returns 202 with an id and a pollUrl straight away, so the server answers fast and the browser polls for the result. This fits the Vercel Hobby 10 second function limit, since a try-on takes up to about 30 seconds.
+- POST /tryons, async, with Authorization Bearer CLOTHSY_API_KEY, a fresh Idempotency-Key per try-on, and a JSON body with personImageUrl or personImageId, garmentImageUrl, title, and consent true. It returns 202 with an id and a pollUrl straight away, so the server answers fast and the browser polls for the result. This fits the Vercel Hobby 10 second function limit, since a try-on can take up to about two minutes to finish.
 - GET /tryons/{id}, polled every 3 seconds by the browser through GET /api/tryon?id=..., until status is success or failed.
 
 Auth is Authorization Bearer CLOTHSY_API_KEY on every request. The key lives only in the server environment and never reaches the browser. One finished try-on costs 1 credit, and a failed try-on is refunded. New Clothsy accounts start with 20 free credits. Images must be JPEG or PNG up to 4 MB. Result URLs work for 24 hours. Every result is labelled on screen as an AI-generated try-on.
@@ -36,7 +37,7 @@ If CLOTHSY_API_KEY is not set, api/tryon.js returns mode demo with a sample resu
 
 ## Tech
 
-Plain static HTML, CSS, and JavaScript, no framework, no build step. Vercel serverless functions in api/ for the try-on and health check. Sample photos are Unsplash URLs, labelled as samples.
+Plain static HTML, CSS, and JavaScript, no framework, no build step. Vercel serverless functions in api/ for the try-on and health check. Sample photos are Unsplash URLs, labelled as samples. Colours follow Clothsy AI's own palette, read from clothsyai.fabricvton.com: paper #fbf9f6, ink #16131c, violet #5b21e8, lavender #efe9fd, gold #e6c34a.
 
 ## Setup
 

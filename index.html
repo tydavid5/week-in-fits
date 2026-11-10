@@ -84,6 +84,14 @@
     <div class="plan-grid" id="plan-grid"></div>
   </section>
 
+  <section class="card" id="mannequin-test">
+    <h2>Step 4, test it on the mannequin</h2>
+    <p>Pick 3 or 4 days from your plan and test those outfits on the digital mannequin, a human-shaped prototype that shows each outfit tried on. Each test is a live Clothsy try-on and costs 1 credit when the app is in live mode.</p>
+    <p class="form-message" id="mannequin-message">Generate your week first, then tick 3 or 4 days in your plan below.</p>
+    <button class="button big" id="test-mannequin" type="button" disabled>Test these outfits on the mannequin</button>
+    <div class="mannequin-grid" id="mannequin-grid"></div>
+  </section>
+
   <section class="card" id="tryon-result-section">
     <h2>Your try-on</h2>
     <p>Tap "Try on" on any day in your plan. The result appears here.</p>
@@ -99,6 +107,7 @@
       <li>You pick an occasion for each day of the week, starting Monday Nov 16, 2026.</li>
       <li>The planner picks one outfit per day, with no repeats, matched to the Lagos weather and the occasion.</li>
       <li>For each day, the app sends your photo and the main garment photo to Clothsy AI through our own server, with your consent. Clothsy returns a photo of you wearing that garment. One finished try-on costs 1 Clothsy credit, and a failed try-on is refunded.</li>
+      <li>Step 4 tests 3 or 4 outfits from your week on the digital mannequin, so you can see the practical outfits for those days tried on before you wear them.</li>
       <li>When no API key is set, the app runs in demo mode and shows a labelled sample try-on instead of a live Clothsy call.</li>
     </ol>
     <p>Weather comes from Open-Meteo for Lagos. If the weather fetch fails, the app uses 31C, sunny, 10 percent rain, and says so on each day.</p>

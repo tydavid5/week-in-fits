@@ -27,6 +27,14 @@ const OCCASIONS = ["work", "casual", "event", "date", "rest"];
 const FALLBACK_WEATHER = { temp: 31, rain: 10, label: "31C, sunny, 10% rain (fallback)" };
 const STORAGE_KEY = "weekInFitsCustomGarments";
 const DEMO_NOTE = "Demo mode, sample try-on, not a live Clothsy call.";
+const MANNEQUIN_SVG =
+  '<svg class="mannequin-figure" viewBox="0 0 120 220" role="img" aria-label="Digital mannequin, prototype">' +
+  '<rect x="52" y="8" width="16" height="10" rx="3" fill="#5b21e8"/>' +
+  '<path d="M52 18 L68 18 L64 34 L56 34 Z" fill="#5b21e8"/>' +
+  '<path d="M38 44 Q60 34 82 44 L88 70 Q92 96 84 130 L80 168 L40 168 L36 130 Q28 96 32 70 Z" fill="#efe9fd" stroke="#5b21e8" stroke-width="3"/>' +
+  '<rect x="58" y="168" width="4" height="34" fill="#5b21e8"/>' +
+  '<rect x="38" y="202" width="44" height="8" rx="4" fill="#5b21e8"/>' +
+  "</svg>";
 
 const state = {
   garments: [],
@@ -38,6 +46,7 @@ const state = {
   plan: [],
   mode: "demo",
   credits: "unknown",
+  mannequinSelected: [],
 };
 
 function $(id) {
@@ -286,6 +295,9 @@ function generateWeek() {
     plan.push({ dayIndex: i, date: date, occasion: occasion, weather: weather, main: main, paired: paired });
   }
   state.plan = plan;
+  state.mannequinSelected = [];
+  $("mannequin-grid").innerHTML = "";
+  updateMannequinControls();
   message.textContent = "Week planned. No garment repeats, warmth matched to the weather, occasion matched to the day.";
   renderPlan();
 }
@@ -303,12 +315,99 @@ function renderPlan() {
       "<p>Occasion: " + escapeHtml(day.occasion) + "<br>" + escapeHtml(day.weather.label) + "</p>" +
       "<p><strong>" + escapeHtml(day.main.name) + "</strong>" +
       (day.paired ? "<br>Paired with: " + escapeHtml(day.paired.name) : "") + "</p>" +
+      '<label class="test-check"><input type="checkbox" data-mannequin-day="' + day.dayIndex + '"' +
+      (state.mannequinSelected.indexOf(day.dayIndex) !== -1 ? " checked" : "") + "> Test this outfit</label>" +
       '<button class="button small" type="button" data-tryon="' + day.dayIndex + '">Try on</button></div>';
     grid.appendChild(card);
+  });
+  grid.querySelectorAll("[data-mannequin-day]").forEach((box) => {
+    box.addEventListener("change", () => {
+      const dayIndex = Number(box.dataset.mannequinDay);
+      if (box.checked) {
+        if (state.mannequinSelected.length >= 4) {
+          box.checked = false;
+          $("mannequin-message").textContent = "Pick at most 4 outfits to test.";
+          return;
+        }
+        state.mannequinSelected.push(dayIndex);
+      } else {
+        state.mannequinSelected = state.mannequinSelected.filter((d) => d !== dayIndex);
+      }
+      updateMannequinControls();
+    });
   });
   grid.querySelectorAll("[data-tryon]").forEach((button) => {
     button.addEventListener("click", () => tryOnDay(Number(button.dataset.tryon), button));
   });
+}
+
+async function fetchJson(url, options, timeoutMs) {
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), timeoutMs);
+  try {
+    const res = await fetch(url, Object.assign({}, options, { signal: controller.signal }));
+    const data = await res.json().catch(() => ({}));
+    return { ok: res.ok, status: res.status, data: data };
+  } finally {
+    clearTimeout(timer);
+  }
+}
+
+async function callTryOn(day, onProgress) {
+  const payload = {
+    garmentImageUrl: day.main.imageUrl,
+    title: day.main.name + (day.paired ? " with " + day.paired.name : ""),
+    consent: true,
+  };
+  if (state.personDataUrl) {
+    payload.personImageData = state.personDataUrl;
+  } else {
+    payload.personImageUrl = state.person.imageUrl;
+  }
+  let data;
+  try {
+    const started = await fetchJson("/api/tryon", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload),
+    }, 90000);
+    data = started.data;
+    if (!started.ok) {
+      return { status: "failed", message: data.message || data.error || ("Server returned HTTP " + started.status) };
+    }
+  } catch (err) {
+    if (err && err.name === "AbortError") {
+      return { status: "failed", message: "The try-on took too long to start. Please try again." };
+    }
+    return { status: "failed", message: "Could not start the try-on: " + err.message };
+  }
+  if (data.mode === "live" && data.status === "pending" && data.id) {
+    for (let attempt = 0; attempt < 40; attempt++) {
+      await new Promise((resolve) => setTimeout(resolve, 3000));
+      if (onProgress) {
+        onProgress("Still working, check " + (attempt + 1) + " of 40.");
+      }
+      let pollData = null;
+      try {
+        const polled = await fetchJson("/api/tryon?id=" + encodeURIComponent(data.id), {}, 20000);
+        pollData = polled.data;
+      } catch (err) {
+        continue;
+      }
+      if (pollData.status === "success" && pollData.resultUrl) {
+        data = pollData;
+        break;
+      }
+      if (pollData.status === "failed") {
+        data = pollData;
+        break;
+      }
+      if (attempt === 39) {
+        data = { status: "failed", message: "Try-on was still working after about two minutes. Please try again, it may have finished on Clothsy." };
+      }
+    }
+  }
+  return data;
 }
 
 async function tryOnDay(dayIndex, button) {
@@ -329,50 +428,12 @@ async function tryOnDay(dayIndex, button) {
   button.disabled = true;
   const originalText = button.textContent;
   button.textContent = "Trying on...";
-  resultBox.innerHTML = "<p>Making your try-on for " + escapeHtml(day.main.name) + ". This can take up to about a minute.</p>";
+  resultBox.innerHTML = "<p>Making your try-on for " + escapeHtml(day.main.name) + ". This can take up to about two minutes.</p>";
   document.getElementById("tryon-result-section").scrollIntoView({ behavior: "smooth" });
   try {
-    const payload = {
-      garmentImageUrl: day.main.imageUrl,
-      title: day.main.name + (day.paired ? " with " + day.paired.name : ""),
-      consent: true,
-    };
-    if (state.personDataUrl) {
-      payload.personImageData = state.personDataUrl;
-    } else {
-      payload.personImageUrl = state.person.imageUrl;
-    }
-    const res = await fetch("/api/tryon", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(payload),
+    const data = await callTryOn(day, (text) => {
+      resultBox.innerHTML = "<p>Making your try-on for " + escapeHtml(day.main.name) + ". " + escapeHtml(text) + "</p>";
     });
-    let data = await res.json().catch(() => ({}));
-    if (!res.ok) {
-      resultBox.innerHTML =
-        "<p><strong>Try-on did not finish.</strong></p><p>" +
-        escapeHtml(data.message || data.error || ("Server returned HTTP " + res.status)) + "</p>";
-      return;
-    }
-    if (data.mode === "live" && data.status === "pending" && data.id) {
-      for (let attempt = 0; attempt < 20; attempt++) {
-        await new Promise((resolve) => setTimeout(resolve, 3000));
-        resultBox.innerHTML = "<p>Making your try-on for " + escapeHtml(day.main.name) + ". Still working, check " + (attempt + 1) + " of 20.</p>";
-        const pollRes = await fetch("/api/tryon?id=" + encodeURIComponent(data.id));
-        const pollData = await pollRes.json().catch(() => ({}));
-        if (pollData.status === "success" && pollData.resultUrl) {
-          data = pollData;
-          break;
-        }
-        if (pollData.status === "failed") {
-          data = pollData;
-          break;
-        }
-        if (attempt === 19) {
-          data = { status: "failed", message: "Try-on was still working after about a minute. Please try again, it may have finished on Clothsy." };
-        }
-      }
-    }
     if (data.status === "failed") {
       resultBox.innerHTML =
         "<p><strong>Try-on did not finish.</strong></p><p>" +
@@ -399,6 +460,97 @@ async function tryOnDay(dayIndex, button) {
     button.disabled = false;
     button.textContent = originalText;
   }
+}
+
+function updateMannequinControls() {
+  const message = $("mannequin-message");
+  const button = $("test-mannequin");
+  const count = state.mannequinSelected.length;
+  if (state.plan.length === 0) {
+    message.textContent = "Generate your week first, then tick 3 or 4 days in your plan below.";
+    button.disabled = true;
+    return;
+  }
+  if (count < 3) {
+    message.textContent = "Tick " + (3 - count) + " more day" + (3 - count === 1 ? "" : "s") + " in your plan, 3 or 4 outfits to test.";
+    button.disabled = true;
+  } else {
+    message.textContent = count + " outfits picked. Each test is 1 Clothsy credit in live mode.";
+    button.disabled = false;
+  }
+}
+
+async function runMannequinTest() {
+  const grid = $("mannequin-grid");
+  const button = $("test-mannequin");
+  const selected = state.mannequinSelected.slice().sort((a, b) => a - b);
+  if (selected.length < 3 || selected.length > 4) {
+    $("mannequin-message").textContent = "Pick 3 or 4 days to test.";
+    return;
+  }
+  if (!state.person) {
+    $("mannequin-message").textContent = "Pick a sample shopper or upload your photo first.";
+    return;
+  }
+  if (!$("consent").checked) {
+    $("mannequin-message").textContent = "Tick the consent box in Step 1 before a try-on.";
+    $("consent").focus();
+    return;
+  }
+  button.disabled = true;
+  button.textContent = "Testing on the mannequin...";
+  grid.innerHTML = "";
+  const cards = {};
+  selected.forEach((dayIndex) => {
+    const day = state.plan[dayIndex];
+    const dateText = day.date.toLocaleDateString("en-GB", { day: "numeric", month: "short" });
+    const card = document.createElement("article");
+    card.className = "mannequin-card";
+    card.innerHTML = MANNEQUIN_SVG +
+      '<div class="mannequin-body"><span class="prototype-label">Digital mannequin, prototype</span>' +
+      "<h4>" + DAY_NAMES[day.dayIndex] + ", " + dateText + "</h4>" +
+      "<p>" + escapeHtml(day.main.name) + (day.paired ? ", paired with " + escapeHtml(day.paired.name) : "") + "<br>Occasion: " + escapeHtml(day.occasion) + "</p>" +
+      '<p class="mannequin-status">Making the try-on, this can take up to about two minutes.</p></div>';
+    grid.appendChild(card);
+    cards[dayIndex] = card;
+  });
+  document.getElementById("mannequin-test").scrollIntoView({ behavior: "smooth" });
+  const testOne = async (dayIndex) => {
+    const day = state.plan[dayIndex];
+    const card = cards[dayIndex];
+    const statusEl = card.querySelector(".mannequin-status");
+    try {
+      const data = await callTryOn(day, (text) => {
+        if (statusEl) {
+          statusEl.textContent = text;
+        }
+      });
+      if (data.status === "failed") {
+        if (statusEl) {
+          statusEl.textContent = "Try-on did not finish: " + (data.message || data.error || "Try-on did not finish.");
+        }
+      } else {
+        const label = data.mode === "demo"
+          ? "Demo mode, sample try-on, not a live Clothsy call."
+          : "Live Clothsy try-on. AI-generated try-on.";
+        card.innerHTML =
+          '<p><img src="' + escapeHtml(data.resultUrl) + '" alt="Mannequin test for ' + escapeHtml(day.main.name) + '"></p>' +
+          '<div class="mannequin-body"><span class="prototype-label">Digital mannequin, prototype</span>' +
+          "<h4>" + DAY_NAMES[day.dayIndex] + ", " + day.date.toLocaleDateString("en-GB", { day: "numeric", month: "short" }) + "</h4>" +
+          "<p>" + escapeHtml(day.main.name) + (day.paired ? ", paired with " + escapeHtml(day.paired.name) : "") + "<br>Occasion: " + escapeHtml(day.occasion) + "</p>" +
+          "<p>" + escapeHtml(label) + "</p></div>";
+      }
+    } catch (err) {
+      if (statusEl) {
+        statusEl.textContent = "Try-on failed: " + err.message;
+      }
+    }
+  };
+  await Promise.all(selected.map((dayIndex) => testOne(dayIndex)));
+  button.disabled = false;
+  button.textContent = "Test these outfits on the mannequin";
+  updateMannequinControls();
+  checkHealth();
 }
 
 async function checkHealth() {
@@ -442,7 +594,9 @@ async function init() {
   renderCloset();
   await loadWeather();
   checkHealth();
+  updateMannequinControls();
   $("generate-week").addEventListener("click", generateWeek);
+  $("test-mannequin").addEventListener("click", runMannequinTest);
   $("photo-upload").addEventListener("change", async (event) => {
     const file = event.target.files && event.target.files[0];
     if (!file) {
