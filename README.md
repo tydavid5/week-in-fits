@@ -57,6 +57,10 @@ To enable live try-ons on Vercel, set CLOTHSY_API_KEY as an environment variable
 - Try-ons use the async Clothsy endpoint on purpose: the server starts a try-on in under 10 seconds and the browser polls for the result, so the Vercel Hobby 10 second function limit is not a blocker.
 - The week is fixed to Mon Nov 16 to Sun Nov 22, 2026, the week after the build date, so the Open-Meteo forecast call uses those exact dates.
 
+## Design, Nov 13, 2026 redesign
+
+Free Framer template used for inspiration only, no template code or assets copied: Lookbook Lite, https://www.framer.com/marketplace/templates/lookbook-lite/, a free one page fashion studio site in square pixels, Handjet and Switzer type. What changed: square corners and hard offset shadows throughout, oversized Handjet display headline for the problem sentence, a two column editorial hero with the gallery hero photo and a Mon to Sun week strip, numbered step eyebrows, lookbook style plan cards numbered Look 01 to Look 07 by CSS counter, numbered How it works list, square pixel accents in the top bar and footer. What stayed: the Clothsy palette (paper, ink, violet, lavender, gold), all copy, all element ids and classes, and all planner, closet, try-on and mannequin behaviour in app.js, which was not changed. What was left out: the template shop, CMS, lookbook pages and pixel fall away hero animation, none of which fit a single page planner app, and no paid template was used.
+
 ## Licence
 
 MIT

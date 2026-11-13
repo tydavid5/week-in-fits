@@ -5,24 +5,48 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Week in Fits, plan a week of outfits from clothes you own</title>
 <meta name="description" content="People with a full wardrobe still wear the same three outfits because planning a week takes too long. Week in Fits plans 7 outfits from your own closet and shows each one with a Clothsy virtual try-on.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Handjet:wght@500;600;700&family=Archivo:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="styles.css">
 </head>
 <body>
 <header class="topbar">
-  <div class="brand">Week in Fits</div>
+  <div class="brand"><span class="brand-pixels" aria-hidden="true"><i></i><i></i><i></i><i></i></span>Week in Fits</div>
+  <div class="topbar-meta">Lookbook 01, Mon Nov 16 to Sun Nov 22, 2026</div>
   <div class="mode-badge" id="mode-badge">Checking mode...</div>
 </header>
 
 <main>
   <section class="hero">
-    <p class="problem">People with a full wardrobe still wear the same three outfits because planning a week takes too long.</p>
-    <p class="hero-sub">Week in Fits plans 7 outfits from clothes you already own, matched to your week, the Lagos weather, and the occasion, then shows each outfit on you with a virtual try-on.</p>
-    <p class="track">HackTheFashion Global'26, Styling and Wardrobe track</p>
-    <a class="button" href="#planner">Plan my week</a>
-    <p class="mode-note" id="mode-note">Mode: checking...</p>
+    <div class="hero-text">
+      <p class="eyebrow">HackTheFashion Global'26, Styling and Wardrobe track</p>
+      <p class="problem">People with a full wardrobe still wear the same three outfits because planning a week takes too long.</p>
+      <p class="hero-sub">Week in Fits plans 7 outfits from clothes you already own, matched to your week, the Lagos weather, and the occasion, then shows each outfit on you with a virtual try-on.</p>
+      <p class="track">HackTheFashion Global'26, Styling and Wardrobe track</p>
+      <div class="hero-actions">
+        <a class="button" href="#planner">Plan my week</a>
+        <a class="button secondary" href="#how">How it works</a>
+      </div>
+      <p class="mode-note" id="mode-note">Mode: checking...</p>
+      <ol class="week-strip" aria-label="The week, Monday November 16 to Sunday November 22, 2026">
+        <li><span>Mon</span><strong>16</strong></li>
+        <li><span>Tue</span><strong>17</strong></li>
+        <li><span>Wed</span><strong>18</strong></li>
+        <li><span>Thu</span><strong>19</strong></li>
+        <li><span>Fri</span><strong>20</strong></li>
+        <li><span>Sat</span><strong>21</strong></li>
+        <li><span>Sun</span><strong>22</strong></li>
+      </ol>
+    </div>
+    <figure class="hero-figure">
+      <img src="gallery-v2/shot-1-hero.jpg" alt="A planned week of outfits, styled as a lookbook" width="1200" height="800">
+      <figcaption><span class="fig-num">Look 01</span> Seven looks, one week, from clothes you already own.</figcaption>
+    </figure>
   </section>
 
   <section class="card" id="photo-step">
+    <p class="eyebrow">Step 01, Photo</p>
     <h2>Step 1, your photo</h2>
     <p>Pick a sample shopper to try it out, or upload your own photo. Only adults, and only your own photo, or a photo you have permission to use. Your photo is only sent for a try-on after you tick the consent box.</p>
     <div class="samples" id="samples"></div>
@@ -38,6 +62,7 @@
   </section>
 
   <section class="card" id="closet">
+    <p class="eyebrow">Step 02, Closet</p>
     <h2>Step 2, your closet</h2>
     <p>14 sample garments to start with. Add your own by image URL, and remove any custom garment you added. Your closet is saved in this browser only.</p>
     <div class="closet-grid" id="closet-grid"></div>
@@ -76,6 +101,7 @@
   </section>
 
   <section class="card" id="planner">
+    <p class="eyebrow">Step 03, Plan</p>
     <h2>Step 3, plan your week</h2>
     <p>People with a full wardrobe still wear the same three outfits because planning a week takes too long. Pick an occasion for each day, then generate the week. The planner is a simple rule system, not a black box: it matches warmth to the temperature, matches the occasion, never repeats a garment in the week, and spreads colours across days.</p>
     <div class="week-days" id="week-days"></div>
@@ -85,6 +111,7 @@
   </section>
 
   <section class="card" id="mannequin-test">
+    <p class="eyebrow">Step 04, Test</p>
     <h2>Step 4, test it on the mannequin</h2>
     <p>Pick 3 or 4 days from your plan and test those outfits on the digital mannequin, a human-shaped prototype that shows each outfit tried on. Each test is a live Clothsy try-on and costs 1 credit when the app is in live mode.</p>
     <p class="form-message" id="mannequin-message">Generate your week first, then tick 3 or 4 days in your plan below.</p>
@@ -93,6 +120,7 @@
   </section>
 
   <section class="card" id="tryon-result-section">
+    <p class="eyebrow">Try-on, Result</p>
     <h2>Your try-on</h2>
     <p>Tap "Try on" on any day in your plan. The result appears here.</p>
     <div id="tryon-result">
@@ -101,8 +129,9 @@
   </section>
 
   <section class="card" id="how">
+    <p class="eyebrow">How it works</p>
     <h2>How it works</h2>
-    <ol>
+    <ol class="how-list">
       <li>You pick a photo and build a closet from clothes you own.</li>
       <li>You pick an occasion for each day of the week, starting Monday Nov 16, 2026.</li>
       <li>The planner picks one outfit per day, with no repeats, matched to the Lagos weather and the occasion.</li>
@@ -115,6 +144,7 @@
 </main>
 
 <footer>
+  <p class="footer-pixels" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i></p>
   <p>Week in Fits, HackTheFashion Global'26, Styling and Wardrobe track.</p>
   <p id="footer-mode">Demo mode: sample try-on, not a live Clothsy call, until an API key is set.</p>
   <p>Sample photos are samples from Unsplash. Only use your own photo, or a photo you have permission to use. Try-on results are AI-generated images.</p>
